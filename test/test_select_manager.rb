@@ -82,15 +82,6 @@ module Arel
         end
       end
 
-#      describe '#having' do
-#        it 'converts strings to SQLLiterals' do
-#          table   = Table.new :users
-#          mgr = table.from table
-#          mgr.having 'foo'
-#          mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo }
-#        end
-#      end
-
       describe 'having' do
         it 'converts strings to SQLLiterals' do
           table   = Table.new :users
