@@ -97,13 +97,6 @@ module Arel
       end
     end
 
-#    def having expr
-#      expr = Nodes::SqlLiteral.new(expr) if String === expr
-#
-#      @ctx.having = Nodes::Having.new(expr)
-#      self
-#    end
-
     def having *exprs
       @ctx.having = Nodes::Having.new(collapse(exprs, @ctx.having))
       self
@@ -226,36 +219,19 @@ module Arel
 
     def collapse exprs, existing = nil
       exprs = exprs.unshift(existing.expr) if existing
-      exprs = exprs.compact.map { |expr|
-        if String === expr
-          # FIXME: Don't do this automatically
-          Arel.sql(expr)
-        else
-          expr
-        end
+      exprs.map! { |x| x.class == ::String ? Arel.sql(x) : x }
+
+      return exprs.first if exprs.length == 1
+
+      right = exprs.pop
+      left  = exprs.pop
+
+      right = Nodes::SqlLiteral.new(right) if String === right
+
+      right = Nodes::And.new left, right
+      exprs.reverse.inject(right) { |memo,expr|
+        Nodes::And.new(expr, memo)
       }
-
-      if exprs.length == 1
-        exprs.first
-      else
-        create_and exprs
-      end
     end
-
-#    def collapse exprs
-#      exprs.map! { |x| x.class == ::String ? Arel.sql(x) : x }
-#
-#      return exprs.first if exprs.length == 1
-#
-#      right = exprs.pop
-#      left  = exprs.pop
-#
-#      right = Nodes::SqlLiteral.new(right) if String === right
-#
-#      right = Nodes::And.new left, right
-#      exprs.reverse.inject(right) { |memo,expr|
-#        Nodes::And.new(expr, memo)
-#      }
-#    end
   end
 end
